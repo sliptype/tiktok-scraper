@@ -6,7 +6,8 @@
   "scripts": {
     "start": "tsc && node dist/main.js",
     "build:docs": "npx typedoc src/main.ts",
-    "build:lib": "npx tsup"
+    "build:lib": "npx tsup",
+    "start:lib": "npx tsup --watch"
   },
   "repository": {
     "type": "git",

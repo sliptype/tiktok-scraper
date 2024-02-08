@@ -85,11 +85,11 @@ export class TTScraper {
 
   private extractJSONObject(html: string) {
     const endofJson = html
-      .split(`<script id="SIGI_STATE" type="application/json">`)[1]
+      .split(`<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application/json">`)[1]
       .indexOf("</script>");
 
     const InfoObject = html
-      .split(`<script id="SIGI_STATE" type="application/json">`)[1]
+      .split(`<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application/json">`)[1]
       .slice(0, endofJson);
 
     return InfoObject;
@@ -133,24 +133,6 @@ export class TTScraper {
   }
 
   /**
-   * Replaces the window Object with a export string and writes the new JS file to work with the result as a JS Object
-   * @param content the HTML content of the Page
-   * @deprecated No need for this function anymore since Tiktok now adds the json directly to the html in a seperated script tag
-   */
-
-  private handleHTMLContent(content: string) {
-    const htmlObject = content;
-    const removeWindowObject = htmlObject
-      .split("window['SIGI_STATE']=")[1]
-      .indexOf(";window['SIGI_RETRY']=");
-
-    const object = JSON.parse(
-      htmlObject.split("window['SIGI_STATE']=")[1].slice(0, removeWindowObject)
-    );
-    return object;
-  }
-
-  /**
    * Checker to use Node-fetch over puppteer in case cookies were not required since it happens randomly
    * @param link
    * @returns
@@ -158,11 +140,11 @@ export class TTScraper {
 
   private async TryFetch(link: string) {
     const $ = await this.requestWebsite(link);
-    if (!this.checkJSONExisting($("#SIGI_STATE").text())) {
+    if (!this.checkJSONExisting($("#__UNIVERSAL_DATA_FOR_REHYDRATION__").text())) {
       const videoJson = await this.requestWithPuppeteer(link);
       return JSON.parse(videoJson);
     } else {
-      return JSON.parse($("#SIGI_STATE").text());
+      return JSON.parse($("#__UNIVERSAL_DATA_FOR_REHYDRATION__").text());
     }
   }
 
@@ -217,23 +199,23 @@ export class TTScraper {
     if (!username) throw new Error("Please enter a username");
 
     let infoObject = await this.TryFetch(`https://www.tiktok.com/@${username}`);
-    const userObject = infoObject.UserModule.users[username];
+    const userObject = infoObject['__DEFAULT_SCOPE__']['webapp.user-detail'].userInfo
 
     const userResult: IUser = new User(
-      userObject.id,
-      userObject.uniqueId,
-      userObject.nickname,
-      userObject.avatarLarger,
-      userObject.signature.trim(),
-      new Date(userObject.createTime * 1000).toLocaleDateString(),
-      userObject.verified,
-      userObject.secUid,
-      userObject?.bioLink?.link,
-      userObject.privateAccount,
-      infoObject.UserModule.stats[username].followerCount,
-      infoObject.UserModule.stats[username].followingCount,
-      infoObject.UserModule.stats[username].heart,
-      infoObject.UserModule.stats[username].videoCount
+      userObject.user.id,
+      userObject.user.uniqueId,
+      userObject.user.nickname,
+      userObject.user.avatarLarger,
+      userObject.user.signature.trim(),
+      new Date(userObject.user.createTime * 1000).toLocaleDateString(),
+      userObject.user.verified,
+      userObject.user.secUid,
+      userObject.user.bioLink?.link,
+      userObject.user.privateAccount,
+      userObject.stats.followerCount,
+      userObject.stats.followingCount,
+      userObject.stats.heart,
+      userObject.stats.videoCount
     );
     return userResult;
   }
